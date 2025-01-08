@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
@@ -26,11 +26,11 @@ interface MarkedDates {
 }
 
 const PHASE_COLORS = {
-  pastPeriod: '#6B5B95',  // Deep purple for past periods
-  menstruation: '#FF7F7F', // Coral for next period
-  fertile: '#2A9D8F',      // (unused)
-  ovulation: '#E9C46A',    // (unused)
-  luteal: '#F4A261',       // (unused)
+  loggedPeriod: '#6B5B95',  // Purple for logged period dates
+  menstruation: '#FF7F7F',  // Coral for predicted dates
+  fertile: '#2A9D8F',       // (unused)
+  ovulation: '#E9C46A',     // (unused)
+  luteal: '#F4A261',        // (unused)
 };
 
 type Props = {
@@ -43,13 +43,20 @@ export default function CycleTrackingScreen({ navigation }: Props) {
   const [nextPeriodInfo, setNextPeriodInfo] = useState<string>('');
   const [periodDates, setPeriodDates] = useState<string[]>([]);
 
+  // Single useEffect for initialization
   useEffect(() => {
-    loadPeriodDates();
-    if (cycleSettings) {
+    const initializeData = async () => {
+      await loadPeriodDates();
+    };
+    initializeData();
+  }, []); // Run only once on mount
+
+  useEffect(() => {
+    if (cycleSettings && periodDates.length > 0) {
       calculateAndMarkDates();
       calculateNextPeriod();
     }
-  }, [cycleSettings, periodDates]);
+  }, [cycleSettings, periodDates]); // Depend on both cycleSettings and periodDates
 
   const loadPeriodDates = async () => {
     try {
@@ -70,27 +77,15 @@ export default function CycleTrackingScreen({ navigation }: Props) {
     const lastPeriod = new Date(lastPeriodDate);
     const today = new Date();
     
-    const daysSinceLastPeriod = Math.floor(
-      (today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    const cyclesElapsed = Math.floor(daysSinceLastPeriod / cycleDays);
-    
-    const nextPeriod = new Date(lastPeriod);
-    nextPeriod.setDate(lastPeriod.getDate() + ((cyclesElapsed + 1) * cycleDays));
-    
-    const daysUntilPeriod = Math.floor(
-      (nextPeriod.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (daysUntilPeriod === 0) {
-      setNextPeriodInfo('Your period is expected to start today');
-    } else if (daysUntilPeriod === 1) {
-      setNextPeriodInfo('Your period is expected to start tomorrow');
-    } else if (daysUntilPeriod > 0) {
-      setNextPeriodInfo(`Your period is expected to start in ${daysUntilPeriod} days`);
-    } else {
-      setNextPeriodInfo('Your period is currently late');
+    // Find the next period date after today
+    let nextPeriod = new Date(lastPeriod);
+    while (nextPeriod <= today) {
+      nextPeriod.setDate(nextPeriod.getDate() + cycleDays);
     }
+    
+    // Format the next period date
+    const nextPeriodFormatted = format(nextPeriod, 'MMMM d, yyyy');
+    setNextPeriodInfo(`Next period expected on ${nextPeriodFormatted}`);
   };
 
   const calculateAndMarkDates = () => {
@@ -98,13 +93,13 @@ export default function CycleTrackingScreen({ navigation }: Props) {
 
     const marked: MarkedDates = {};
     
-    // Mark all previous period dates
+    // Mark logged period dates in purple
     periodDates.forEach((date) => {
       const dateString = format(new Date(date), 'yyyy-MM-dd');
       marked[dateString] = {
         customStyles: {
           container: {
-            backgroundColor: PHASE_COLORS.pastPeriod,
+            backgroundColor: PHASE_COLORS.loggedPeriod,
           },
           text: {
             color: '#FFFFFF',
@@ -113,27 +108,30 @@ export default function CycleTrackingScreen({ navigation }: Props) {
       };
     });
 
-    // Mark only next period
-    const { lastPeriodDate, menstrualDays, cycleDays } = cycleSettings;
-    const lastPeriod = new Date(lastPeriodDate);
-    const nextPeriod = new Date(lastPeriod);
-    nextPeriod.setDate(lastPeriod.getDate() + cycleDays);
+    // Mark predicted dates in coral
+    const { lastPeriodDate, cycleDays } = cycleSettings;
+    const startDate = new Date(lastPeriodDate);
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 4);
 
-    // Mark menstruation days for next period
-    for (let i = 0; i < menstrualDays; i++) {
-      const date = new Date(nextPeriod);
-      date.setDate(date.getDate() + i);
-      const dateString = format(date, 'yyyy-MM-dd');
-      marked[dateString] = {
-        customStyles: {
-          container: {
-            backgroundColor: PHASE_COLORS.menstruation,
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      const dateString = format(currentDate, 'yyyy-MM-dd');
+      // Only mark if it's not already marked as a logged date
+      if (!marked[dateString]) {
+        marked[dateString] = {
+          customStyles: {
+            container: {
+              backgroundColor: PHASE_COLORS.menstruation,
+            },
+            text: {
+              color: '#FFFFFF',
+            },
           },
-          text: {
-            color: '#FFFFFF',
-          },
-        },
-      };
+        };
+      }
+      currentDate = new Date(currentDate);
+      currentDate.setDate(currentDate.getDate() + cycleDays);
     }
 
     setMarkedDates(marked);
@@ -180,12 +178,12 @@ export default function CycleTrackingScreen({ navigation }: Props) {
 
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: PHASE_COLORS.pastPeriod }]} />
-            <Text style={styles.legendText}>Past Periods</Text>
+            <View style={[styles.legendDot, { backgroundColor: PHASE_COLORS.loggedPeriod }]} />
+            <Text style={styles.legendText}>Logged Periods</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: PHASE_COLORS.menstruation }]} />
-            <Text style={styles.legendText}>Next Period</Text>
+            <Text style={styles.legendText}>Predicted Periods</Text>
           </View>
         </View>
 
