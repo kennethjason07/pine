@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../utils/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface MarkedDates {
   [date: string]: {
@@ -43,13 +44,15 @@ export default function CycleTrackingScreen({ navigation }: Props) {
   const [nextPeriodInfo, setNextPeriodInfo] = useState<string>('');
   const [periodDates, setPeriodDates] = useState<string[]>([]);
 
-  // Single useEffect for initialization
-  useEffect(() => {
-    const initializeData = async () => {
-      await loadPeriodDates();
-    };
-    initializeData();
-  }, []); // Run only once on mount
+  // Replace the first useEffect with useFocusEffect
+  useFocusEffect(
+    React.useCallback(() => {
+      const initializeData = async () => {
+        await loadPeriodDates();
+      };
+      initializeData();
+    }, [])
+  );
 
   useEffect(() => {
     if (cycleSettings && periodDates.length > 0) {
