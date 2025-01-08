@@ -26,10 +26,11 @@ interface MarkedDates {
 }
 
 const PHASE_COLORS = {
-  menstruation: '#E76F51',  // Red
-  fertile: '#2A9D8F',       // Teal
-  ovulation: '#E9C46A',     // Yellow
-  luteal: '#F4A261',        // Orange
+  pastPeriod: '#6B5B95',  // Deep purple for past periods
+  menstruation: '#FF7F7F', // Coral for next period
+  fertile: '#2A9D8F',      // (unused)
+  ovulation: '#E9C46A',    // (unused)
+  luteal: '#F4A261',       // (unused)
 };
 
 type Props = {
@@ -48,7 +49,7 @@ export default function CycleTrackingScreen({ navigation }: Props) {
       calculateAndMarkDates();
       calculateNextPeriod();
     }
-  }, [cycleSettings]);
+  }, [cycleSettings, periodDates]);
 
   const loadPeriodDates = async () => {
     try {
@@ -97,9 +98,32 @@ export default function CycleTrackingScreen({ navigation }: Props) {
 
     const marked: MarkedDates = {};
     
-    // Mark all previous period dates with cycle labels
-    periodDates.forEach((date, index) => {
-      const dateString = new Date(date).toISOString().split('T')[0];
+    // Mark all previous period dates
+    periodDates.forEach((date) => {
+      const dateString = format(new Date(date), 'yyyy-MM-dd');
+      marked[dateString] = {
+        customStyles: {
+          container: {
+            backgroundColor: PHASE_COLORS.pastPeriod,
+          },
+          text: {
+            color: '#FFFFFF',
+          },
+        }
+      };
+    });
+
+    // Mark only next period
+    const { lastPeriodDate, menstrualDays, cycleDays } = cycleSettings;
+    const lastPeriod = new Date(lastPeriodDate);
+    const nextPeriod = new Date(lastPeriod);
+    nextPeriod.setDate(lastPeriod.getDate() + cycleDays);
+
+    // Mark menstruation days for next period
+    for (let i = 0; i < menstrualDays; i++) {
+      const date = new Date(nextPeriod);
+      date.setDate(date.getDate() + i);
+      const dateString = format(date, 'yyyy-MM-dd');
       marked[dateString] = {
         customStyles: {
           container: {
@@ -109,87 +133,7 @@ export default function CycleTrackingScreen({ navigation }: Props) {
             color: '#FFFFFF',
           },
         },
-        // Add period cycle label
-        marked: true,
-        dotColor: PHASE_COLORS.menstruation,
-        text: `Cycle ${index + 1}`
       };
-    });
-
-    // Mark future predictions
-    const { lastPeriodDate, menstrualDays, cycleDays } = cycleSettings;
-    const lastPeriod = new Date(lastPeriodDate);
-    
-    for (let cycle = 0; cycle < 3; cycle++) {
-      const cycleStart = new Date(lastPeriod);
-      cycleStart.setDate(cycleStart.getDate() + (cycle * cycleDays));
-
-      // Menstruation phase
-      for (let i = 0; i < menstrualDays; i++) {
-        const date = new Date(cycleStart);
-        date.setDate(date.getDate() + i);
-        const dateString = date.toISOString().split('T')[0];
-        marked[dateString] = {
-          customStyles: {
-            container: {
-              backgroundColor: PHASE_COLORS.menstruation,
-            },
-            text: {
-              color: '#FFFFFF',
-            },
-          },
-        };
-      }
-
-      // Fertile window
-      const ovulationDay = Math.floor(cycleDays * 0.5) - 1;
-      for (let i = ovulationDay - 5; i < ovulationDay; i++) {
-        const date = new Date(cycleStart);
-        date.setDate(date.getDate() + i);
-        const dateString = date.toISOString().split('T')[0];
-        marked[dateString] = {
-          customStyles: {
-            container: {
-              backgroundColor: PHASE_COLORS.fertile,
-            },
-            text: {
-              color: '#FFFFFF',
-            },
-          },
-        };
-      }
-
-      // Ovulation day
-      const ovulationDate = new Date(cycleStart);
-      ovulationDate.setDate(ovulationDate.getDate() + ovulationDay);
-      const ovulationDateString = ovulationDate.toISOString().split('T')[0];
-      marked[ovulationDateString] = {
-        customStyles: {
-          container: {
-            backgroundColor: PHASE_COLORS.ovulation,
-          },
-          text: {
-            color: '#FFFFFF',
-          },
-        },
-      };
-
-      // Luteal phase
-      for (let i = ovulationDay + 1; i < cycleDays; i++) {
-        const date = new Date(cycleStart);
-        date.setDate(date.getDate() + i);
-        const dateString = date.toISOString().split('T')[0];
-        marked[dateString] = {
-          customStyles: {
-            container: {
-              backgroundColor: PHASE_COLORS.luteal,
-            },
-            text: {
-              color: '#FFFFFF',
-            },
-          },
-        };
-      }
     }
 
     setMarkedDates(marked);
@@ -236,20 +180,12 @@ export default function CycleTrackingScreen({ navigation }: Props) {
 
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: PHASE_COLORS.pastPeriod }]} />
+            <Text style={styles.legendText}>Past Periods</Text>
+          </View>
+          <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: PHASE_COLORS.menstruation }]} />
-            <Text style={styles.legendText}>Menstruation</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: PHASE_COLORS.fertile }]} />
-            <Text style={styles.legendText}>Fertile Window</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: PHASE_COLORS.ovulation }]} />
-            <Text style={styles.legendText}>Ovulation</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: PHASE_COLORS.luteal }]} />
-            <Text style={styles.legendText}>Luteal Phase</Text>
+            <Text style={styles.legendText}>Next Period</Text>
           </View>
         </View>
 
