@@ -17,12 +17,16 @@ import TrackPeriodsScreen from './src/screens/TrackPeriodsScreen';
 import DayDetailsScreen from './src/screens/DayDetailsScreen';
 import MoodStatisticsScreen from './src/screens/MoodStatisticsScreen';
 import MedicineAdherenceScreen from './src/screens/MedicineAdherenceScreen';
+import JournalScreen from './src/screens/JournalScreen';
 
 // Define your navigation types
 type RootStackParamList = {
   MainTabs: undefined;
   CycleSettings: undefined;
   NotificationReminder: undefined;
+  Journal: undefined;
+  MoodStatistics: undefined;
+  MedicineAdherence: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -104,7 +108,31 @@ export default function App() {
               name="NotificationReminder" 
               component={NotificationReminderScreen}
               options={{
-                headerShown: false,
+                animation: 'slide_from_right',
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen 
+              name="MoodStatistics" 
+              component={MoodStatisticsScreen}
+              options={{
+                animation: 'slide_from_right',
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen 
+              name="MedicineAdherence" 
+              component={MedicineAdherenceScreen}
+              options={{
+                animation: 'slide_from_right',
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen 
+              name="Journal" 
+              component={JournalScreen}
+              options={{
+                animation: 'slide_from_right',
                 presentation: 'card',
               }}
             />
@@ -126,20 +154,6 @@ export default function App() {
             <Stack.Screen 
               name="MedicationTracking" 
               component={MedicationTrackingScreen}
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen 
-              name="MoodStatistics" 
-              component={MoodStatisticsScreen}
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen 
-              name="MedicineAdherence" 
-              component={MedicineAdherenceScreen}
               options={{
                 headerShown: false,
               }}

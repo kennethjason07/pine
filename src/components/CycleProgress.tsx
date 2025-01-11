@@ -1,40 +1,109 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useApp } from '../context/AppContext';
+import { differenceInDays, startOfDay } from 'date-fns';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export type PhaseType = 'menstruation' | 'follicular' | 'ovulation' | 'luteal';
 
-interface CycleProgressProps {
-  currentDay: number;
-  totalDays: number;
-  phase: PhaseType;
-}
-
 const PHASE_COLORS = {
-  menstruation: { color: '#E76F51', label: 'Menstruation' },
+  menstruation: { color: '#FF7F7F', label: 'Menstruation' },
   follicular: { color: '#E9C46A', label: 'Follicular' },
   ovulation: { color: '#2A9D8F', label: 'Ovulation' },
   luteal: { color: '#F4A261', label: 'Luteal' },
 };
 
-export default function CycleProgress({ currentDay, totalDays, phase }: CycleProgressProps) {
-  const progress = (currentDay / totalDays) * 100;
-  const phaseColor = PHASE_COLORS[phase].color;
+interface CycleInfo {
+  currentDay: number;
+  totalDays: number;
+  phase: PhaseType;
+}
+
+export default function CycleProgress() {
+  const { cycleSettings } = useApp();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [cycleInfo, setCycleInfo] = useState<CycleInfo>({
+    currentDay: 0,
+    totalDays: 28,
+    phase: 'menstruation',
+  });
+
+  useEffect(() => {
+    updateCycleInfo();
+  }, [cycleSettings]);
+
+  const updateCycleInfo = () => {
+    if (!cycleSettings?.lastPeriodDate) {
+      setCycleInfo({
+        currentDay: 0,
+        totalDays: 28,
+        phase: 'menstruation',
+      });
+      return;
+    }
+
+    const { lastPeriodDate, cycleDays = 28, periodLength = 5 } = cycleSettings;
+    const today = startOfDay(new Date());
+    const lastPeriod = startOfDay(new Date(lastPeriodDate));
+    
+    // Find the start of the current cycle
+    let currentCycleStart = new Date(lastPeriod);
+    while (currentCycleStart <= today) {
+      const nextCycle = new Date(currentCycleStart);
+      nextCycle.setDate(nextCycle.getDate() + cycleDays);
+      if (nextCycle > today) {
+        break;
+      }
+      currentCycleStart = nextCycle;
+    }
+
+    // Calculate current day in cycle
+    const currentDay = differenceInDays(today, currentCycleStart) + 1;
+    
+    // Determine the current phase
+    let phase: PhaseType;
+    if (currentDay <= periodLength) {
+      phase = 'menstruation';
+    } else if (currentDay <= Math.floor(cycleDays * 0.4)) {
+      phase = 'follicular';
+    } else if (currentDay <= Math.floor(cycleDays * 0.5)) {
+      phase = 'ovulation';
+    } else {
+      phase = 'luteal';
+    }
+
+    setCycleInfo({
+      currentDay,
+      totalDays: cycleDays,
+      phase,
+    });
+  };
+
+  const progress = (cycleInfo.currentDay / cycleInfo.totalDays) * 100;
+  const phaseColor = PHASE_COLORS[cycleInfo.phase].color;
+
+  const handlePress = () => {
+    navigation.navigate('Cycle');
+  };
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={handlePress}>
       <Text style={styles.cardTitle}>Current Cycle</Text>
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
           <View 
             style={[
               styles.progress, 
-              { width: `${progress}%`, backgroundColor: phaseColor }
+              { width: `${Math.min(progress, 100)}%`, backgroundColor: phaseColor }
             ]} 
           />
         </View>
-        <Text style={styles.cycleText}>Day {currentDay} of {totalDays}</Text>
+        <Text style={styles.cycleText}>
+          Day {cycleInfo.currentDay} of {cycleInfo.totalDays}
+        </Text>
         <Text style={[styles.phaseText, { color: phaseColor }]}>
-          {PHASE_COLORS[phase].label} Phase
+          {PHASE_COLORS[cycleInfo.phase].label} Phase
         </Text>
       </View>
 
@@ -47,7 +116,7 @@ export default function CycleProgress({ currentDay, totalDays, phase }: CyclePro
           </View>
         ))}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -99,24 +168,20 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E9ECEF',
     paddingTop: 12,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
   },
   indicatorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '45%',
     marginBottom: 8,
   },
   colorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     marginRight: 8,
   },
   indicatorText: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 14,
+    color: '#264653',
   },
 });

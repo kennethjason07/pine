@@ -7,6 +7,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 type RootStackParamList = {
   MedicineAdherence: undefined;
   MoodStatistics: undefined;
+  Journal: undefined;
 };
 
 type Props = {
@@ -47,6 +48,21 @@ export default function InsightsScreen({ navigation }: Props) {
             <Text style={styles.valueText}>View Analysis</Text>
             <Text style={styles.descriptionText}>
               Track your mood patterns over time
+            </Text>
+          </TouchableOpacity>
+
+          {/* Journal Card */}
+          <TouchableOpacity 
+            style={styles.card}
+            onPress={() => navigation.navigate('Journal')}
+          >
+            <View style={styles.cardHeader}>
+              <Ionicons name="book" size={24} color="#E76F51" />
+              <Text style={styles.cardTitle}>Journal</Text>
+            </View>
+            <Text style={styles.valueText}>Write & View</Text>
+            <Text style={styles.descriptionText}>
+              Keep track of your thoughts and feelings
             </Text>
           </TouchableOpacity>
         </View>

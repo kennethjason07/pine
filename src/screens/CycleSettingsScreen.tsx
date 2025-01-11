@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useApp } from '../context/AppContext';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RootStackParamList = {
   MainTabs: undefined;
@@ -35,6 +36,29 @@ export default function CycleSettingsScreen({ navigation }: Props) {
     lastPeriodDate: cycleSettings?.lastPeriodDate || new Date(),
     notificationsEnabled: cycleSettings?.notificationsEnabled || false,
   });
+
+  useEffect(() => {
+    loadMostRecentPeriodDate();
+  }, []);
+
+  const loadMostRecentPeriodDate = async () => {
+    try {
+      const savedDates = await AsyncStorage.getItem('@period_dates');
+      if (savedDates) {
+        const dates = JSON.parse(savedDates).map((date: string) => new Date(date));
+        // Sort dates in descending order and get the most recent one
+        const sortedDates = dates.sort((a: Date, b: Date) => b.getTime() - a.getTime());
+        if (sortedDates.length > 0) {
+          setSettings(prev => ({
+            ...prev,
+            lastPeriodDate: new Date(sortedDates[0]),
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading most recent period date:', error);
+    }
+  };
 
   const validateSettings = () => {
     const menstrualDays = parseInt(settings.menstrualDays);
@@ -247,4 +271,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#264653',
   },
-}); 
+});

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -15,6 +15,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface Medication {
   id: string;
@@ -61,9 +62,11 @@ export default function MedicationTrackingScreen({ navigation }: Props) {
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [intervalDays, setIntervalDays] = useState('1');
 
-  useEffect(() => {
-    loadMedications();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadMedications();
+    }, [])
+  );
 
   const loadMedications = async () => {
     try {

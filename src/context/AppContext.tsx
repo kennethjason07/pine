@@ -32,8 +32,9 @@ interface AppContextType {
   };
   cycleStats: CycleStats;
   getCycleStats: () => CycleStats;
-  getMedicationAdherence: () => number;
+  getMedicationAdherence: () => Promise<number>;
   loadCurrentCycle: () => Promise<void>;
+  refreshStats: () => Promise<void>;
   cycleSettings: {
     lastPeriodDate: string;
     cycleDays: number;
@@ -187,8 +188,95 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     return cycleStats;
   };
 
-  const getMedicationAdherence = () => {
-    return 85; // Default value for now
+  const getMedicationAdherence = async () => {
+    try {
+      const medsData = await AsyncStorage.getItem('medications');
+      if (!medsData) return 0;
+
+      const medications = JSON.parse(medsData);
+      const now = new Date();
+      const oneWeekAgo = new Date(now);
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      let totalExpected = 0;
+      let totalTaken = 0;
+
+      medications.forEach((med: any) => {
+        // Calculate expected doses in the past week based on frequency
+        let expectedDoses = 0;
+        const startDate = new Date(Math.max(oneWeekAgo.getTime(), new Date(med.createdAt || oneWeekAgo).getTime()));
+        
+        switch (med.frequency.type) {
+          case 'daily':
+            expectedDoses = Math.ceil((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+            break;
+          case 'every_n_days':
+            expectedDoses = Math.ceil((now.getTime() - startDate.getTime()) / (med.frequency.interval * 24 * 60 * 60 * 1000));
+            break;
+          case 'weekly':
+            if (med.frequency.daysOfWeek?.length) {
+              // Count how many of the selected days occurred in the past week
+              for (let d = new Date(startDate); d <= now; d.setDate(d.getDate() + 1)) {
+                if (med.frequency.daysOfWeek.includes(d.getDay())) {
+                  expectedDoses++;
+                }
+              }
+            }
+            break;
+          case 'monthly':
+            if (med.frequency.dayOfMonth) {
+              // Check if the monthly day occurred in the past week
+              for (let d = new Date(startDate); d <= now; d.setDate(d.getDate() + 1)) {
+                if (d.getDate() === med.frequency.dayOfMonth) {
+                  expectedDoses++;
+                }
+              }
+            }
+            break;
+        }
+
+        totalExpected += expectedDoses;
+
+        // Count actual doses taken in the past week
+        if (med.lastTaken) {
+          const takenDates = Array.isArray(med.lastTaken) ? med.lastTaken : [med.lastTaken];
+          const takenInLastWeek = takenDates.filter((date: string) => {
+            const takenDate = new Date(date);
+            return takenDate >= oneWeekAgo && takenDate <= now;
+          });
+          totalTaken += takenInLastWeek.length;
+        }
+      });
+
+      // Calculate adherence percentage
+      const adherence = totalExpected === 0 ? 0 : Math.round((totalTaken / totalExpected) * 100);
+      return Math.min(adherence, 100); // Cap at 100%
+    } catch (error) {
+      console.error('Error calculating medication adherence:', error);
+      return 0;
+    }
+  };
+
+  const refreshStats = async () => {
+    try {
+      // Refresh cycle stats using existing function
+      const newStats = getCycleStats();
+      setCycleStats(newStats);
+      
+      // Refresh medication adherence
+      const medsData = await AsyncStorage.getItem('medications');
+      if (medsData) {
+        const medications = JSON.parse(medsData);
+        // Use existing function for adherence
+        const newAdherence = await getMedicationAdherence();
+        // Stats are already updated through the existing functions
+      }
+      
+      // Refresh current cycle if needed
+      await loadCurrentCycle();
+    } catch (error) {
+      console.error('Error refreshing stats:', error);
+    }
   };
 
   const updateCycleSettings = async (settings: {
@@ -226,6 +314,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     getCycleStats,
     getMedicationAdherence,
     loadCurrentCycle,
+    refreshStats,
     cycleSettings,
     updateCycleSettings,
     notificationSettings,
@@ -241,4 +330,4 @@ export const useApp = () => {
     throw new Error('useApp must be used within an AppProvider');
   }
   return context;
-}; 
+};

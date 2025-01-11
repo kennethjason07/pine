@@ -1,13 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import CycleProgress from '../components/CycleProgress';
+import MedicationCard from '../components/MedicationCard';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { format } from 'date-fns';
+
+interface Medication {
+  id: string;
+  name: string;
+  dosage: string;
+  frequency: {
+    type: 'daily' | 'every_n_days' | 'weekly' | 'monthly';
+    interval?: number;
+    daysOfWeek?: number[];
+    dayOfMonth?: number;
+  };
+  reminderTime: string;
+  lastTaken?: string;
+  nextReminder?: string;
+}
 
 type RootStackParamList = {
   Settings: undefined;
+  Medications: undefined;
 };
 
 type Props = {
@@ -19,11 +39,88 @@ export default function HomeScreen({ navigation }: Props) {
     currentCycle, 
     cycleStats,
     getCycleStats,
-    getMedicationAdherence 
+    getMedicationAdherence,
+    refreshStats,
+    cycleSettings
   } = useApp();
 
-  const stats = getCycleStats();
-  const adherence = getMedicationAdherence();
+  const [medications, setMedications] = useState<Medication[]>([]);
+  const [nextMedication, setNextMedication] = useState<Medication | null>(null);
+  const [stats, setStats] = useState(getCycleStats());
+  const [adherence, setAdherence] = useState(getMedicationAdherence());
+  const [nextPeriodInfo, setNextPeriodInfo] = useState<string>('');
+
+  // Update data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('HomeScreen focused - updating data');
+      loadMedications();
+      updateStats();
+      calculateNextPeriod();
+      return () => {
+        // Optional cleanup
+      };
+    }, [])
+  );
+
+  const updateStats = async () => {
+    if (refreshStats) {
+      await refreshStats();
+    }
+    setStats(getCycleStats());
+    const newAdherence = await getMedicationAdherence();
+    setAdherence(newAdherence);
+  };
+
+  const loadMedications = async () => {
+    try {
+      const savedMeds = await AsyncStorage.getItem('medications');
+      if (savedMeds) {
+        const meds: Medication[] = JSON.parse(savedMeds);
+        setMedications(meds);
+        
+        // Find the next medication due that hasn't been taken today
+        const now = new Date();
+        const nextMed = meds
+          .filter(med => {
+            if (!med.lastTaken) return true;
+            const lastTaken = new Date(med.lastTaken);
+            return !(
+              lastTaken.getDate() === now.getDate() &&
+              lastTaken.getMonth() === now.getMonth() &&
+              lastTaken.getFullYear() === now.getFullYear()
+            );
+          })
+          .sort((a, b) => {
+            const dateA = new Date(a.nextReminder || '');
+            const dateB = new Date(b.nextReminder || '');
+            return dateA.getTime() - dateB.getTime();
+          })[0];
+        
+        setNextMedication(nextMed || null);
+      }
+    } catch (error) {
+      console.error('Error loading medications:', error);
+    }
+  };
+
+  const calculateNextPeriod = () => {
+    if (!cycleSettings) return;
+
+    const { lastPeriodDate, cycleDays } = cycleSettings;
+    const lastPeriod = new Date(lastPeriodDate);
+    const today = new Date();
+    
+    // Find the next period date after today
+    let nextPeriod = new Date(lastPeriod);
+    while (nextPeriod <= today) {
+      nextPeriod.setDate(nextPeriod.getDate() + cycleDays);
+    }
+    
+    // Format the next period date
+    const nextPeriodFormatted = format(nextPeriod, 'MMMM d, yyyy');
+    setNextPeriodInfo(`Expected on ${nextPeriodFormatted}`);
+  };
 
   // Calculate current cycle day
   const getCurrentCycleDay = () => {
@@ -62,22 +159,34 @@ export default function HomeScreen({ navigation }: Props) {
         />
 
         {/* Medication Reminder Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Next Medication</Text>
-          <Text style={styles.emptyText}>No medications scheduled</Text>
-        </View>
+        {nextMedication ? (
+          <MedicationCard
+            medication={nextMedication}
+            onUpdate={loadMedications}
+            onPress={() => navigation.navigate('Medications')}
+          />
+        ) : (
+          <TouchableOpacity 
+            style={styles.card}
+            onPress={() => navigation.navigate('Medications')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.cardTitle}>Next Medication</Text>
+            <Text style={styles.emptyText}>No medications scheduled</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Quick Stats */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Quick Stats</Text>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Cycle Length</Text>
-              <Text style={styles.statValue}>{stats.averageLength} days</Text>
+              <Text style={styles.statLabel}>Next Period</Text>
+              <Text style={styles.statValue}>{nextPeriodInfo || 'Not available'}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Medication Adherence</Text>
-              <Text style={styles.statValue}>{adherence}%</Text>
+              <Text style={styles.statValue}>{adherence}% this week</Text>
             </View>
           </View>
         </View>
@@ -165,4 +274,3 @@ const styles = StyleSheet.create({
     padding: 16,
   },
 });
-
