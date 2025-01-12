@@ -219,19 +219,21 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 25,
     borderBottomWidth: 1,
     borderBottomColor: '#E9ECEF',
   },
   backButton: {
-    padding: 8,
+    marginTop: 15,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#264653',
+    marginTop: 15,
   },
   headerSpacer: {
     width: 40,

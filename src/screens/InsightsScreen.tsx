@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+// Define the type for navigation props
 type RootStackParamList = {
   MedicineAdherence: undefined;
   MoodStatistics: undefined;
@@ -15,53 +16,64 @@ type Props = {
 };
 
 export default function InsightsScreen({ navigation }: Props) {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => !prev);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Insights</Text>
-      
+    <SafeAreaView style={[styles.container, darkMode && styles.containerDark]}>
+      <View style={[styles.header, darkMode && styles.headerDark]}>
+        <Text style={[styles.headerText, darkMode && styles.headerTextDark]}>Insights</Text>
+        <TouchableOpacity onPress={toggleDarkMode} style={[styles.darkModeButton, styles.darkModeButtonMargin]}>
+          <Ionicons name={darkMode ? "sunny-outline" : "moon-outline"} size={24} color={darkMode ? "#FFD700" : "#264653"} />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView style={styles.scrollView}>
         <View style={styles.insightContainer}>
           {/* Medicine Adherence Card */}
           <TouchableOpacity 
-            style={styles.card}
+            style={[styles.card, darkMode && styles.cardDark]}
             onPress={() => navigation.navigate('MedicineAdherence')}
           >
             <View style={styles.cardHeader}>
-              <Ionicons name="medical" size={24} color="#2A9D8F" />
-              <Text style={styles.cardTitle}>Medicine Adherence</Text>
+              <Ionicons name="medical" size={24} color={darkMode ? "#FFD700" : "#2A9D8F"} />
+              <Text style={[styles.cardTitle, darkMode && styles.cardTitleDark]}>Medicine Adherence</Text>
             </View>
-            <Text style={styles.valueText}>View Report</Text>
-            <Text style={styles.descriptionText}>
+            <Text style={[styles.valueText, darkMode && styles.valueTextDark]}>View Report</Text>
+            <Text style={[styles.descriptionText, darkMode && styles.descriptionTextDark]}>
               Track your medication compliance
             </Text>
           </TouchableOpacity>
 
           {/* Mood Statistics Card */}
           <TouchableOpacity 
-            style={styles.card}
+            style={[styles.card, darkMode && styles.cardDark]}
             onPress={() => navigation.navigate('MoodStatistics')}
           >
             <View style={styles.cardHeader}>
-              <Ionicons name="stats-chart" size={24} color="#F4A261" />
-              <Text style={styles.cardTitle}>Mood Statistics</Text>
+              <Ionicons name="stats-chart" size={24} color={darkMode ? "#FFD700" : "#F4A261"} />
+              <Text style={[styles.cardTitle, darkMode && styles.cardTitleDark]}>Mood Statistics</Text>
             </View>
-            <Text style={styles.valueText}>View Analysis</Text>
-            <Text style={styles.descriptionText}>
+            <Text style={[styles.valueText, darkMode && styles.valueTextDark]}>View Analysis</Text>
+            <Text style={[styles.descriptionText, darkMode && styles.descriptionTextDark]}>
               Track your mood patterns over time
             </Text>
           </TouchableOpacity>
 
           {/* Journal Card */}
           <TouchableOpacity 
-            style={styles.card}
+            style={[styles.card, darkMode && styles.cardDark]}
             onPress={() => navigation.navigate('Journal')}
           >
             <View style={styles.cardHeader}>
-              <Ionicons name="book" size={24} color="#E76F51" />
-              <Text style={styles.cardTitle}>Journal</Text>
+              <Ionicons name="book" size={24} color={darkMode ? "#FFD700" : "#E76F51"} />
+              <Text style={[styles.cardTitle, darkMode && styles.cardTitleDark]}>Journal</Text>
             </View>
-            <Text style={styles.valueText}>Write & View</Text>
-            <Text style={styles.descriptionText}>
+            <Text style={[styles.valueText, darkMode && styles.valueTextDark]}>Write & View</Text>
+            <Text style={[styles.descriptionText, darkMode && styles.descriptionTextDark]}>
               Keep track of your thoughts and feelings
             </Text>
           </TouchableOpacity>
@@ -76,12 +88,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
+  containerDark: {
+    backgroundColor: '#121212',
+  },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  headerDark: {
+    backgroundColor: '#1F1F1F',
+    borderBottomColor: '#333333',
+  },
+  headerText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#264653',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+  },
+  headerTextDark: {
+    color: '#FFD700',
+  },
+  darkModeButton: {
+    padding: 8,
+  },
+  darkModeButtonMargin: {
+    marginRight: 8,
   },
   scrollView: {
     flex: 1,
@@ -97,6 +132,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E9ECEF',
   },
+  cardDark: {
+    backgroundColor: '#1F1F1F',
+    borderColor: '#333333',
+  },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -108,15 +147,24 @@ const styles = StyleSheet.create({
     color: '#264653',
     marginLeft: 12,
   },
+  cardTitleDark: {
+    color: '#FFD700',
+  },
   valueText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#264653',
     marginBottom: 8,
   },
+  valueTextDark: {
+    color: '#FFD700',
+  },
   descriptionText: {
     fontSize: 14,
     color: '#666666',
     lineHeight: 20,
+  },
+  descriptionTextDark: {
+    color: '#AAAAAA',
   },
 });

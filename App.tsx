@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider } from './src/context/AppContext';
+import { ThemeProvider } from './src/context/ThemeContext';
 
 // Import your screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -12,18 +13,18 @@ import CycleTrackingScreen from './src/screens/CycleTrackingScreen';
 import MedicationTrackingScreen from './src/screens/MedicationTrackingScreen';
 import InsightsScreen from './src/screens/InsightsScreen';
 import CycleSettingsScreen from './src/screens/CycleSettingsScreen';
-import NotificationReminderScreen from './src/screens/NotificationReminderScreen';
 import TrackPeriodsScreen from './src/screens/TrackPeriodsScreen';
 import DayDetailsScreen from './src/screens/DayDetailsScreen';
 import MoodStatisticsScreen from './src/screens/MoodStatisticsScreen';
 import MedicineAdherenceScreen from './src/screens/MedicineAdherenceScreen';
 import JournalScreen from './src/screens/JournalScreen';
+import PredictPeriodsScreen from './src/screens/PredictPeriodsScreen';
 
 // Define your navigation types
 type RootStackParamList = {
   MainTabs: undefined;
   CycleSettings: undefined;
-  NotificationReminder: undefined;
+  PredictPeriods: undefined;
   Journal: undefined;
   MoodStatistics: undefined;
   MedicineAdherence: undefined;
@@ -85,81 +86,84 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AppProvider>
-        <NavigationContainer>
-          <Stack.Navigator 
-            screenOptions={{
-              headerShown: false,
-              animation: 'slide_from_right',
-            }}
-          >
-            <Stack.Screen 
-              name="MainTabs" 
-              component={TabNavigator} 
-            />
-            <Stack.Screen 
-              name="CycleSettings" 
-              component={CycleSettingsScreen}
-              options={{
-                animation: 'slide_from_right',
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen 
-              name="NotificationReminder" 
-              component={NotificationReminderScreen}
-              options={{
-                animation: 'slide_from_right',
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen 
-              name="MoodStatistics" 
-              component={MoodStatisticsScreen}
-              options={{
-                animation: 'slide_from_right',
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen 
-              name="MedicineAdherence" 
-              component={MedicineAdherenceScreen}
-              options={{
-                animation: 'slide_from_right',
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen 
-              name="Journal" 
-              component={JournalScreen}
-              options={{
-                animation: 'slide_from_right',
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen 
-              name="TrackPeriods" 
-              component={TrackPeriodsScreen}
-              options={{
+        <ThemeProvider>
+          <NavigationContainer>
+            <Stack.Navigator 
+              screenOptions={{
                 headerShown: false,
-                presentation: 'card',
+                animation: 'slide_from_right',
               }}
-            />
-            <Stack.Screen 
-              name="DayDetails" 
-              component={DayDetailsScreen}
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen 
-              name="MedicationTracking" 
-              component={MedicationTrackingScreen}
-              options={{
-                headerShown: false,
-              }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
+            >
+              <Stack.Screen 
+                name="MainTabs" 
+                component={TabNavigator} 
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="CycleSettings" 
+                component={CycleSettingsScreen}
+                options={{
+                  animation: 'slide_from_right',
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen 
+                name="PredictPeriods" 
+                component={PredictPeriodsScreen}
+                options={{
+                  animation: 'slide_from_right',
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen 
+                name="MoodStatistics" 
+                component={MoodStatisticsScreen}
+                options={{
+                  animation: 'slide_from_right',
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen 
+                name="MedicineAdherence" 
+                component={MedicineAdherenceScreen}
+                options={{
+                  animation: 'slide_from_right',
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen 
+                name="Journal" 
+                component={JournalScreen}
+                options={{
+                  animation: 'slide_from_right',
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen 
+                name="TrackPeriods" 
+                component={TrackPeriodsScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen 
+                name="DayDetails" 
+                component={DayDetailsScreen}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen 
+                name="MedicationTracking" 
+                component={MedicationTrackingScreen}
+                options={{
+                  headerShown: false,
+                }}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </ThemeProvider>
       </AppProvider>
     </SafeAreaProvider>
   );

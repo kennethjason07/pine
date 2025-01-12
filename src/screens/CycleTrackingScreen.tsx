@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
@@ -29,9 +29,6 @@ interface MarkedDates {
 const PHASE_COLORS = {
   loggedPeriod: '#6B5B95',  // Purple for logged period dates
   menstruation: '#FF7F7F',  // Coral for predicted dates
-  fertile: '#2A9D8F',       // (unused)
-  ovulation: '#E9C46A',     // (unused)
-  luteal: '#F4A261',        // (unused)
 };
 
 type Props = {
@@ -43,8 +40,8 @@ export default function CycleTrackingScreen({ navigation }: Props) {
   const [markedDates, setMarkedDates] = useState<MarkedDates>({});
   const [nextPeriodInfo, setNextPeriodInfo] = useState<string>('');
   const [periodDates, setPeriodDates] = useState<string[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState(false); // State for dark mode
 
-  // Replace the first useEffect with useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
       const initializeData = async () => {
@@ -95,7 +92,7 @@ export default function CycleTrackingScreen({ navigation }: Props) {
     if (!cycleSettings) return;
 
     const marked: MarkedDates = {};
-    
+
     // Mark logged period dates in purple
     periodDates.forEach((date) => {
       const dateString = format(new Date(date), 'yyyy-MM-dd');
@@ -107,7 +104,7 @@ export default function CycleTrackingScreen({ navigation }: Props) {
           text: {
             color: '#FFFFFF',
           },
-        }
+        },
       };
     });
 
@@ -115,9 +112,10 @@ export default function CycleTrackingScreen({ navigation }: Props) {
     const { lastPeriodDate, cycleDays } = cycleSettings;
     const startDate = new Date(lastPeriodDate);
     const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 4);
+    endDate.setMonth(endDate.getMonth() + 6); // Show predictions for next 6 months
 
     let currentDate = new Date(startDate);
+
     while (currentDate <= endDate) {
       const dateString = format(currentDate, 'yyyy-MM-dd');
       // Only mark if it's not already marked as a logged date
@@ -133,8 +131,11 @@ export default function CycleTrackingScreen({ navigation }: Props) {
           },
         };
       }
-      currentDate = new Date(currentDate);
-      currentDate.setDate(currentDate.getDate() + cycleDays);
+
+      // Move to the next predicted period date
+      const nextDate = new Date(currentDate);
+      nextDate.setDate(nextDate.getDate() + cycleDays);
+      currentDate = nextDate;
     }
 
     setMarkedDates(marked);
@@ -144,23 +145,136 @@ export default function CycleTrackingScreen({ navigation }: Props) {
     navigation.navigate('DayDetails', { date: day.dateString });
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(prevMode => !prevMode);
+  };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDarkMode ? '#1E1E2E' : '#FFFFFF',  // Main Background
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 16,
+      backgroundColor: isDarkMode ? '#1F1F1F' : '#FFFFFF',
+      borderBottomWidth: 1,
+      borderBottomColor: isDarkMode ? '#333333' : '#E0E0E0',
+    },
+    title: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: isDarkMode ? '#FFFFFF' : '#264653',
+    },
+    settingsButton: {
+      padding: 8,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    predictionContainer: {
+      padding: 16,
+      alignItems: 'center',
+    },
+    predictionBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDarkMode ? '#333333' : '#E8F5F3',
+      padding: 12,
+      borderRadius: 8,
+      maxWidth: '100%',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    predictionIcon: {
+      marginRight: 8,
+    },
+    predictionText: {
+      color: isDarkMode ? '#FFD700' : '#264653',
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    legendContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-around',
+      padding: 16,
+      backgroundColor: isDarkMode ? '#1F1F1F' : '#fff',
+      marginTop: 16,
+      borderRadius: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 4,
+      minWidth: '45%',
+    },
+    legendDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: 8,
+    },
+    legendText: {
+      fontSize: 12,
+      color: isDarkMode ? '#FFD700' : '#264653',
+    },
+    menuItem: {
+      padding: 16,
+      backgroundColor: isDarkMode ? '#1F1F1F' : '#FFFFFF',
+      borderTopWidth: 1,
+      borderColor: isDarkMode ? '#333333' : '#E0E0E0',
+    },
+    menuItemContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    menuText: {
+      fontSize: 16,
+      color: isDarkMode ? '#FFD700' : '#333333',
+    },
+    toggleButton: {
+      backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Button background
+      padding: 10,
+      borderRadius: 5,
+      alignItems: 'center',
+      margin: 10,
+    },
+    toggleButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Cycle Tracking</Text>
         <TouchableOpacity 
           style={styles.settingsButton}
-          onPress={() => navigation.navigate('CycleSettings')}
+          onPress={toggleTheme}
         >
-          <Ionicons name="settings-outline" size={24} color="#264653" />
+          <Ionicons name={isDarkMode ? "sunny-outline" : "moon-outline"} size={24} color={isDarkMode ? "#FFD700" : "#264653"} />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {/* Prediction Label */}
         <View style={styles.predictionContainer}>
           <View style={styles.predictionBox}>
-            <Ionicons name="calendar" size={20} color="#2A9D8F" style={styles.predictionIcon} />
+            <Ionicons name="calendar" size={20} color={isDarkMode ? "#FFD700" : "#2A9D8F"} style={styles.predictionIcon} />
             <Text style={styles.predictionText}>{nextPeriodInfo}</Text>
           </View>
         </View>
@@ -171,11 +285,15 @@ export default function CycleTrackingScreen({ navigation }: Props) {
           markingType={'custom'}
           onDayPress={handleDayPress}
           theme={{
-            todayTextColor: '#2A9D8F',
-            arrowColor: '#2A9D8F',
-            monthTextColor: '#264653',
+            todayTextColor: isDarkMode ? '#FFD700' : '#2A9D8F',
+            arrowColor: isDarkMode ? '#FFD700' : '#2A9D8F',
+            monthTextColor: isDarkMode ? '#FFD700' : '#264653',
             textMonthFontWeight: 'bold',
             textDayHeaderFontWeight: '600',
+            backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
+            calendarBackground: isDarkMode ? '#121212' : '#FFFFFF',
+            dayTextColor: isDarkMode ? '#E0E0E0' : '#000000',
+            textDisabledColor: isDarkMode ? '#5C5C5C' : '#D9E1E8',
           }}
         />
 
@@ -192,11 +310,11 @@ export default function CycleTrackingScreen({ navigation }: Props) {
 
         <TouchableOpacity 
           style={styles.menuItem}
-          onPress={() => navigation.navigate('NotificationReminder')}
+          onPress={() => navigation.navigate('PredictPeriods')}
         >
           <View style={styles.menuItemContent}>
-            <Text style={styles.menuText}>Notification Reminder</Text>
-            <Ionicons name="chevron-forward" size={20} color="#264653" />
+            <Text style={styles.menuText}>Predict Periods</Text>
+            <Ionicons name="chevron-forward" size={20} color={isDarkMode ? "#FFD700" : "#264653"} />
           </View>
         </TouchableOpacity>
 
@@ -206,109 +324,17 @@ export default function CycleTrackingScreen({ navigation }: Props) {
         >
           <View style={styles.menuItemContent}>
             <Text style={styles.menuText}>Track Periods</Text>
-            <Ionicons name="chevron-forward" size={20} color="#264653" />
+            <Ionicons name="chevron-forward" size={20} color={isDarkMode ? "#FFD700" : "#264653"} />
           </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.toggleButton}
+          onPress={toggleTheme}
+        >
+          <Text style={styles.toggleButtonText}>{isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  title: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#264653',
-  },
-  settingsButton: {
-    padding: 8,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  predictionContainer: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  predictionBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F5F3',
-    padding: 12,
-    borderRadius: 8,
-    maxWidth: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  predictionIcon: {
-    marginRight: 8,
-  },
-  predictionText: {
-    color: '#264653',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  legendContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    padding: 16,
-    backgroundColor: '#fff',
-    marginTop: 16,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-    minWidth: '45%',
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 8,
-  },
-  legendText: {
-    fontSize: 12,
-    color: '#264653',
-  },
-  menuItem: {
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  menuItemContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  menuText: {
-    fontSize: 16,
-    color: '#333333',
-  },
-});

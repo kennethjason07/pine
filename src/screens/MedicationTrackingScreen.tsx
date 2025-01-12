@@ -61,6 +61,11 @@ export default function MedicationTrackingScreen({ navigation }: Props) {
   const [showFrequencyModal, setShowFrequencyModal] = useState(false);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [intervalDays, setIntervalDays] = useState('1');
+  const [isDarkMode, setIsDarkMode] = useState(true); // State for dark mode
+
+  const toggleTheme = () => {
+    setIsDarkMode(prevMode => !prevMode);
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -280,14 +285,17 @@ export default function MedicationTrackingScreen({ navigation }: Props) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#264653" />
+          <Ionicons name="arrow-back" size={24} color="#A3A3C2" />
         </TouchableOpacity>
         <Text style={styles.title}>Medications</Text>
         <TouchableOpacity 
           style={styles.addButton}
           onPress={() => setShowAddModal(true)}
         >
-          <Ionicons name="add" size={24} color="#264653" />
+          <Ionicons name="add" size={24} color="#A3A3C2" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={toggleTheme} style={styles.toggleButton}>
+          <Text style={styles.toggleButtonText}>{isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -296,14 +304,14 @@ export default function MedicationTrackingScreen({ navigation }: Props) {
           <View key={medication.id} style={styles.medicationCard}>
             <View style={styles.medicationHeader}>
               <View style={styles.medicationInfo}>
-                <Ionicons name="medical" size={24} color="#2A9D8F" />
+                <Ionicons name="medical" size={24} color="#4CAF50" />
                 <View style={styles.medicationDetails}>
                   <Text style={styles.medicationName}>{medication.name}</Text>
                   <Text style={styles.medicationDosage}>
                     Dose: {medication.dosage}
                   </Text>
                   <View style={styles.frequencyContainer}>
-                    <Ionicons name="repeat" size={14} color="#2A9D8F" />
+                    <Ionicons name="repeat" size={14} color="#4CAF50" />
                     <Text style={styles.frequencyText}>
                       {getFrequencyText(medication.frequency)}
                     </Text>
@@ -346,7 +354,7 @@ export default function MedicationTrackingScreen({ navigation }: Props) {
 
         {medications.length === 0 && (
           <View style={styles.emptyState}>
-            <Ionicons name="medical" size={48} color="#CCC" />
+            <Ionicons name="medical" size={48} color="#A3A3C2" />
             <Text style={styles.emptyStateText}>
               No medications added yet
             </Text>
@@ -370,7 +378,7 @@ export default function MedicationTrackingScreen({ navigation }: Props) {
                 onPress={() => setShowAddModal(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color="#666" />
+                <Ionicons name="close" size={24} color="#A3A3C2" />
               </TouchableOpacity>
             </View>
 
@@ -404,7 +412,7 @@ export default function MedicationTrackingScreen({ navigation }: Props) {
                   <Text style={styles.frequencyButtonText}>
                     {FREQUENCY_OPTIONS.find(opt => opt.value === newMedication.frequency.type)?.label}
                   </Text>
-                  <Ionicons name="chevron-down" size={20} color="#666" />
+                  <Ionicons name="chevron-down" size={20} color="#A3A3C2" />
                 </TouchableOpacity>
               </View>
 
@@ -466,7 +474,7 @@ export default function MedicationTrackingScreen({ navigation }: Props) {
                 onPress={() => setShowFrequencyModal(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color="#666" />
+                <Ionicons name="close" size={24} color="#A3A3C2" />
               </TouchableOpacity>
             </View>
 
@@ -508,8 +516,40 @@ export default function MedicationTrackingScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+    backgroundColor: isDarkMode ? '#1E1E2E' : '#FFFFFF',  // Main Background
+  },
+  card: {
+    backgroundColor: isDarkMode ? '#2A2A40' : '#F8F9FA',  // Card Background
+    borderRadius: 8,
+    padding: 16,
+    margin: 8,
+  },
+  primaryText: {
+    color: isDarkMode ? '#FFFFFF' : '#000000',  // Primary Text
+    fontSize: 18,
+  },
+  secondaryText: {
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
+    fontSize: 14,
+  },
+  input: {
+    backgroundColor: isDarkMode ? '#29293D' : '#FFFFFF',  // Input Background
+    color: isDarkMode ? '#FFFFFF' : '#000000',  // Input Text
+    placeholderTextColor: isDarkMode ? '#5A5A7A' : '#666666',  // Placeholder Text
+    borderRadius: 4,
+    padding: 10,
+  },
+  button: {
+    backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Primary Button Background
+    color: '#FFFFFF',  // Button Text
+  },
+  floatingButton: {
+    backgroundColor: isDarkMode ? '#FF4081' : '#007BFF',  // Floating Add Button
+    color: '#FFFFFF',  // Icon Color
+  },
+  divider: {
+    backgroundColor: isDarkMode ? '#3C3C54' : '#E5E5EA',  // Divider Color
+    height: 1,
   },
   header: {
     flexDirection: 'row',
@@ -518,8 +558,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: isDarkMode ? '#3C3C54' : '#E5E5EA',  // Divider Color
+    backgroundColor: isDarkMode ? '#1E1E2E' : '#FFFFFF',  // Main Background
     height: 60,
   },
   backButton: {
@@ -532,7 +572,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#264653',
+    color: isDarkMode ? '#A3A3C2' : '#333333',  // Secondary Text
     flex: 1,
     textAlign: 'center',
     marginHorizontal: 8,
@@ -547,10 +587,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: isDarkMode ? '#2A2A40' : '#FFFFFF',  // Card Background
   },
   medicationCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? '#2A2A40' : '#F8F9FA',  // Card Background
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -579,17 +619,17 @@ const styles = StyleSheet.create({
   medicationName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2A9D8F',
+    color: isDarkMode ? '#FFFFFF' : '#000000',  // Primary Text
     marginBottom: 6,
   },
   medicationDosage: {
     fontSize: 14,
-    color: '#666',
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
     marginBottom: 6,
     fontWeight: '500',
   },
   takeButton: {
-    backgroundColor: '#2A9D8F',
+    backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Primary Button Background
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -597,14 +637,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   takeButtonTaken: {
-    backgroundColor: '#E9ECEF',
+    backgroundColor: isDarkMode ? '#3C3C54' : '#E5E5EA',  // Divider Color
   },
   takeButtonText: {
-    color: '#FFFFFF',
+    color: '#FFFFFF',  // Button Text
     fontWeight: '600',
   },
   takeButtonTextTaken: {
-    color: '#666',
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
   },
   medicationFooter: {
     flexDirection: 'row',
@@ -618,13 +658,13 @@ const styles = StyleSheet.create({
   },
   reminderText: {
     fontSize: 14,
-    color: '#666',
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
     marginLeft: 8,
   },
   frequencyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4F9F9',
+    backgroundColor: isDarkMode ? '#29293D' : '#FFFFFF',  // Input Background
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 12,
@@ -632,7 +672,7 @@ const styles = StyleSheet.create({
   },
   frequencyText: {
     fontSize: 13,
-    color: '#2A9D8F',
+    color: isDarkMode ? '#4CAF50' : '#007BFF',  // Primary Button Background
     marginLeft: 4,
     fontWeight: '500',
   },
@@ -645,13 +685,13 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#264653',
+    color: isDarkMode ? '#A3A3C2' : '#333333',  // Secondary Text
     marginTop: 16,
     textAlign: 'center',
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#666',
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
     marginTop: 8,
     textAlign: 'center',
   },
@@ -661,7 +701,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? '#1E1E2E' : '#FFFFFF',  // Main Background
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 16,
@@ -677,7 +717,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#264653',
+    color: isDarkMode ? '#A3A3C2' : '#333333',  // Secondary Text
   },
   closeButton: {
     padding: 8,
@@ -690,48 +730,43 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    color: '#666',
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
     marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
   },
   frequencyButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: isDarkMode ? '#29293D' : '#FFFFFF',  // Input Background
+    borderColor: isDarkMode ? '#3C3C54' : '#E5E5EA',  // Divider Color
     borderWidth: 1,
-    borderColor: '#E9ECEF',
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 4,
+    padding: 10,
   },
   frequencyButtonText: {
     fontSize: 16,
-    color: '#264653',
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
   },
   timePickerButton: {
+    backgroundColor: isDarkMode ? '#29293D' : '#FFFFFF',  // Input Background
+    borderColor: isDarkMode ? '#3C3C54' : '#E5E5EA',  // Divider Color
     borderWidth: 1,
-    borderColor: '#E9ECEF',
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 4,
+    padding: 10,
   },
   timePickerButtonText: {
     fontSize: 16,
-    color: '#264653',
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
   },
   addMedicationButton: {
-    backgroundColor: '#2A9D8F',
+    backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Primary Button Background
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
     marginTop: 24,
   },
   addMedicationButtonText: {
-    color: '#FFFFFF',
+    color: '#FFFFFF',  // Button Text
     fontSize: 16,
     fontWeight: '600',
   },
@@ -748,19 +783,19 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E9ECEF',
+    borderColor: isDarkMode ? '#3C3C54' : '#E5E5EA',  // Divider Color
     minWidth: 45,
     alignItems: 'center',
   },
   dayButtonSelected: {
-    backgroundColor: '#2A9D8F',
-    borderColor: '#2A9D8F',
+    backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Primary Button Background
+    borderColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Primary Button Background
   },
   dayButtonText: {
-    color: '#666',
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
   },
   dayButtonTextSelected: {
-    color: '#FFFFFF',
+    color: '#FFFFFF',  // Button Text
   },
   frequencyList: {
     maxHeight: 300,
@@ -771,17 +806,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
+    borderBottomColor: isDarkMode ? '#3C3C54' : '#E5E5EA',  // Divider Color
   },
   frequencyOptionSelected: {
-    backgroundColor: '#2A9D8F',
+    backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Primary Button Background
   },
   frequencyOptionText: {
     fontSize: 16,
-    color: '#264653',
+    color: isDarkMode ? '#A3A3C2' : '#666666',  // Secondary Text
   },
   frequencyOptionTextSelected: {
-    color: '#FFFFFF',
+    color: '#FFFFFF',  // Button Text
     fontWeight: '600',
   },
   actionButtons: {
@@ -795,11 +830,22 @@ const styles = StyleSheet.create({
     minWidth: 80,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E76F51',
+    borderColor: isDarkMode ? '#E76F51' : '#FF4081',
   },
   deleteButtonText: {
-    color: '#E76F51',
+    color: isDarkMode ? '#E76F51' : '#FF4081',
     fontWeight: '600',
     fontSize: 14,
+  },
+  toggleButton: {
+    backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Button background
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    margin: 10,
+  },
+  toggleButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });

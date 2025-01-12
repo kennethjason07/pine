@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { format } from 'date-fns';
+import { lightTheme, darkTheme } from '../theme/theme';
 
 interface Medication {
   id: string;
@@ -44,32 +45,29 @@ export default function HomeScreen({ navigation }: Props) {
     cycleSettings
   } = useApp();
 
+  const [isDarkMode, setIsDarkMode] = useState(false); // State for dark mode
+
+  const toggleTheme = () => {
+    setIsDarkMode(prevMode => !prevMode);
+  };
+
   const [medications, setMedications] = useState<Medication[]>([]);
   const [nextMedication, setNextMedication] = useState<Medication | null>(null);
   const [stats, setStats] = useState(getCycleStats());
   const [adherence, setAdherence] = useState(getMedicationAdherence());
   const [nextPeriodInfo, setNextPeriodInfo] = useState<string>('');
 
-  // Update data when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      console.log('HomeScreen focused - updating data');
-      loadMedications();
-      updateStats();
-      calculateNextPeriod();
-      return () => {
-        // Optional cleanup
-      };
-    }, [])
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      await refreshData();
+    };
+    fetchData();
+  }, [refreshStats, cycleSettings]);
 
-  const updateStats = async () => {
-    if (refreshStats) {
-      await refreshStats();
-    }
-    setStats(getCycleStats());
-    const newAdherence = await getMedicationAdherence();
-    setAdherence(newAdherence);
+  const refreshData = async () => {
+    await loadMedications();
+    await updateStats();
+    calculateNextPeriod();
   };
 
   const loadMedications = async () => {
@@ -79,7 +77,6 @@ export default function HomeScreen({ navigation }: Props) {
         const meds: Medication[] = JSON.parse(savedMeds);
         setMedications(meds);
         
-        // Find the next medication due that hasn't been taken today
         const now = new Date();
         const nextMed = meds
           .filter(med => {
@@ -104,25 +101,37 @@ export default function HomeScreen({ navigation }: Props) {
     }
   };
 
+  const updateStats = async () => {
+    try {
+      if (refreshStats) {
+        await refreshStats();
+      }
+      setStats(getCycleStats());
+      const newAdherence = await getMedicationAdherence();
+      setAdherence(newAdherence);
+    } catch (error) {
+      console.error('Error updating stats:', error);
+    }
+  };
+
   const calculateNextPeriod = () => {
-    if (!cycleSettings) return;
+    if (!cycleSettings || !cycleSettings.lastPeriodDate || !cycleSettings.cycleDays) return;
+    if (!cycleSettings.lastPeriodDate || !cycleSettings.cycleDays) return;
 
     const { lastPeriodDate, cycleDays } = cycleSettings;
+    
     const lastPeriod = new Date(lastPeriodDate);
     const today = new Date();
     
-    // Find the next period date after today
     let nextPeriod = new Date(lastPeriod);
     while (nextPeriod <= today) {
       nextPeriod.setDate(nextPeriod.getDate() + cycleDays);
     }
     
-    // Format the next period date
     const nextPeriodFormatted = format(nextPeriod, 'MMMM d, yyyy');
     setNextPeriodInfo(`Expected on ${nextPeriodFormatted}`);
   };
 
-  // Calculate current cycle day
   const getCurrentCycleDay = () => {
     if (!currentCycle?.startDate) {
       console.log('No start date available');
@@ -135,30 +144,109 @@ export default function HomeScreen({ navigation }: Props) {
     start.setHours(0, 0, 0, 0);
     today.setHours(0, 0, 0, 0);
     
-    const diffTime = Math.abs(today.getTime() - start.getTime());
+    const diffTime = today.getTime() - start.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return diffDays || 1;
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDarkMode ? darkTheme.background : lightTheme.background,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+    },
+    headerText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    themeToggle: {
+      padding: 8,
+    },
+    scrollView: {
+      flex: 1,
+      padding: 16,
+    },
+    card: {
+      borderWidth: 1,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 3,
+      backgroundColor: isDarkMode ? darkTheme.card : lightTheme.card,
+      borderColor: isDarkMode ? darkTheme.border : lightTheme.border,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 12,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    statsContainer: {
+      gap: 16,
+    },
+    statItem: {
+      gap: 8,
+    },
+    statLabel: {
+      fontSize: 14,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    statValue: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: isDarkMode ? darkTheme.primary : lightTheme.primary,
+    },
+    emptyText: {
+      fontStyle: 'italic',
+      textAlign: 'center',
+      padding: 16,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    toggleButton: {
+      backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',
+      padding: 10,
+      borderRadius: 5,
+      alignItems: 'center',
+      margin: 10,
+    },
+    toggleButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <Text style={styles.logo}>HarmoniCare</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <Ionicons name="settings-outline" size={24} color="#E76F51" />
+      <View style={styles.header}>
+        <Text style={styles.headerText}>HarmoniCare</Text>
+        <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
+          <Ionicons 
+            name={isDarkMode ? "moon" : "moon-outline"} 
+            size={24} 
+            color={isDarkMode ? darkTheme.text : lightTheme.text} 
+          />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {/* Current Cycle Card */}
         <CycleProgress 
           currentDay={getCurrentCycleDay()}
-          totalDays={stats.averageLength}
-          phase={currentCycle.phase}
+          totalDays={stats.averageLength || 28} // Default value for totalDays
+          phase={currentCycle?.phase || 'Unknown'}
         />
 
-        {/* Medication Reminder Card */}
         {nextMedication ? (
           <MedicationCard
             medication={nextMedication}
@@ -167,8 +255,8 @@ export default function HomeScreen({ navigation }: Props) {
           />
         ) : (
           <TouchableOpacity 
-            style={styles.card}
-            onPress={() => navigation.navigate('Medications')}
+            style={styles.card} 
+            onPress={() => navigation.navigate('Medications')} 
             activeOpacity={0.7}
           >
             <Text style={styles.cardTitle}>Next Medication</Text>
@@ -176,7 +264,6 @@ export default function HomeScreen({ navigation }: Props) {
           </TouchableOpacity>
         )}
 
-        {/* Quick Stats */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Quick Stats</Text>
           <View style={styles.statsContainer}>
@@ -186,91 +273,15 @@ export default function HomeScreen({ navigation }: Props) {
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Medication Adherence</Text>
-              <Text style={styles.statValue}>{adherence}% this week</Text>
+              <Text style={styles.statValue}>{adherence !== undefined && adherence !== null ? `${adherence}%` : 'N/A'} this week</Text>
             </View>
           </View>
         </View>
+
+        <TouchableOpacity onPress={toggleTheme} style={styles.toggleButton}>
+          <Text style={styles.toggleButtonText}>{isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-  },
-  logo: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2A9D8F',
-  },
-  scrollView: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#264653',
-    marginBottom: 12,
-  },
-  medicationContent: {
-    gap: 12,
-  },
-  medicationText: {
-    fontSize: 16,
-    color: '#264653',
-  },
-  primaryButton: {
-    backgroundColor: '#2A9D8F',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontWeight: '500',
-  },
-  statsContainer: {
-    gap: 16,
-  },
-  statItem: {
-    gap: 8,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: '#666',
-  },
-  statValue: {
-    fontSize: 16,
-    color: '#264653',
-    fontWeight: '500',
-  },
-  emptyText: {
-    color: '#666',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    padding: 16,
-  },
-});
