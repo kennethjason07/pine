@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTheme } from '../context/ThemeContext';
 
 interface Medication {
   id: string;
@@ -37,6 +38,7 @@ type Props = {
 };
 
 export default function MedicineAdherenceScreen({ navigation }: Props) {
+  const { isDarkMode } = useTheme();
   const [medications, setMedications] = useState<Medication[]>([]);
   const [adherenceStats, setAdherenceStats] = useState({
     overall: 0,
@@ -118,6 +120,106 @@ export default function MedicineAdherenceScreen({ navigation }: Props) {
     });
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDarkMode ? '#1E1E2E' : '#FFFFFF',
+      paddingTop: Platform.OS === 'ios' ? 50 : 30,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 8,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: isDarkMode ? '#333333' : '#E9ECEF',
+      height: 60,
+    },
+    backButton: {
+      padding: 12,
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: isDarkMode ? '#FFFFFF' : '#264653',
+      flex: 1,
+      textAlign: 'center',
+      marginHorizontal: 8,
+    },
+    headerSpacer: {
+      width: 44,
+    },
+    content: {
+      flex: 1,
+      padding: 16,
+    },
+    section: {
+      backgroundColor: isDarkMode ? '#2A2A40' : '#FFFFFF',
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: isDarkMode ? '#FFD700' : '#264653',
+      marginBottom: 16,
+    },
+    adherenceCircle: {
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: isDarkMode ? '#2A9D8F' : '#2A9D8F',
+      alignItems: 'center',
+      justifyContent: 'center',
+      alignSelf: 'center',
+      marginVertical: 16,
+    },
+    adherencePercentage: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: isDarkMode ? '#FFFFFF' : '#FFFFFF',
+    },
+    medicationStat: {
+      marginBottom: 16,
+    },
+    medicationName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: isDarkMode ? '#FFD700' : '#2A9D8F',
+      marginBottom: 8,
+    },
+    statDetails: {
+      flexDirection: 'column',
+      gap: 8,
+    },
+    progressBar: {
+      height: 8,
+      backgroundColor: isDarkMode ? '#333333' : '#E9ECEF',
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: isDarkMode ? '#2A9D8F' : '#2A9D8F',
+      borderRadius: 4,
+    },
+    adherenceText: {
+      fontSize: 14,
+      color: isDarkMode ? '#AAAAAA' : '#666',
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -125,7 +227,7 @@ export default function MedicineAdherenceScreen({ navigation }: Props) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#264653" />
+          <Ionicons name="arrow-back" size={24} color={isDarkMode ? '#FFFFFF' : '#264653'} />
         </TouchableOpacity>
         <Text style={styles.title}>Medicine Adherence</Text>
         <View style={styles.headerSpacer} />
@@ -168,103 +270,3 @@ export default function MedicineAdherenceScreen({ navigation }: Props) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-    height: 60,
-  },
-  backButton: {
-    padding: 12,
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#264653',
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 8,
-  },
-  headerSpacer: {
-    width: 44,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  section: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#264653',
-    marginBottom: 16,
-  },
-  adherenceCircle: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: '#2A9D8F',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginVertical: 16,
-  },
-  adherencePercentage: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  medicationStat: {
-    marginBottom: 16,
-  },
-  medicationName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2A9D8F',
-    marginBottom: 8,
-  },
-  statDetails: {
-    flexDirection: 'column',
-    gap: 8,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#E9ECEF',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#2A9D8F',
-    borderRadius: 4,
-  },
-  adherenceText: {
-    fontSize: 14,
-    color: '#666',
-  },
-}); 

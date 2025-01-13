@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../utils/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../context/ThemeContext';
 
 interface MarkedDates {
   [date: string]: {
@@ -37,10 +38,11 @@ type Props = {
 
 export default function CycleTrackingScreen({ navigation }: Props) {
   const { cycleSettings } = useApp();
+  const { isDarkMode, toggleTheme } = useTheme();
+
   const [markedDates, setMarkedDates] = useState<MarkedDates>({});
   const [nextPeriodInfo, setNextPeriodInfo] = useState<string>('');
   const [periodDates, setPeriodDates] = useState<string[]>([]);
-  const [isDarkMode, setIsDarkMode] = useState(false); // State for dark mode
 
   useFocusEffect(
     React.useCallback(() => {
@@ -145,9 +147,20 @@ export default function CycleTrackingScreen({ navigation }: Props) {
     navigation.navigate('DayDetails', { date: day.dateString });
   };
 
-  const toggleTheme = () => {
-    setIsDarkMode(prevMode => !prevMode);
-  };
+  const calendarTheme = useMemo(() => ({
+    todayTextColor: isDarkMode ? '#FFD700' : '#2A9D8F',
+    arrowColor: isDarkMode ? '#FFD700' : '#2A9D8F',
+    monthTextColor: isDarkMode ? '#FFD700' : '#264653',
+    textMonthFontWeight: 'bold' as const,
+    textDayHeaderFontWeight: '600' as const,
+    backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
+    calendarBackground: isDarkMode ? '#121212' : '#FFFFFF',
+    dayTextColor: isDarkMode ? '#E0E0E0' : '#000000',
+    textDisabledColor: isDarkMode ? '#5C5C5C' : '#D9E1E8',
+    textSectionTitleColor: isDarkMode ? '#FFD700' : '#264653', // Adding this for day names
+    selectedDayBackgroundColor: isDarkMode ? '#FFD700' : '#2A9D8F',
+    selectedDayTextColor: isDarkMode ? '#121212' : '#FFFFFF',
+  }), [isDarkMode]);
 
   const styles = StyleSheet.create({
     container: {
@@ -244,7 +257,7 @@ export default function CycleTrackingScreen({ navigation }: Props) {
     },
     menuText: {
       fontSize: 16,
-      color: isDarkMode ? '#FFD700' : '#333333',
+      color: isDarkMode ? "#FFD700" : "#333333",
     },
     toggleButton: {
       backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Button background
@@ -257,17 +270,21 @@ export default function CycleTrackingScreen({ navigation }: Props) {
       color: '#FFFFFF',
       fontSize: 16,
     },
+    themeToggle: {
+      padding: 8,
+    },
   });
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Cycle Tracking</Text>
-        <TouchableOpacity 
-          style={styles.settingsButton}
-          onPress={toggleTheme}
-        >
-          <Ionicons name={isDarkMode ? "sunny-outline" : "moon-outline"} size={24} color={isDarkMode ? "#FFD700" : "#264653"} />
+        <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
+          <Ionicons 
+            name={isDarkMode ? "sunny-outline" : "moon-outline"} 
+            size={24} 
+            color={isDarkMode ? "#FFD700" : "#264653"} 
+          />
         </TouchableOpacity>
       </View>
 
@@ -280,20 +297,14 @@ export default function CycleTrackingScreen({ navigation }: Props) {
         </View>
 
         <Calendar
+          key={isDarkMode ? 'dark' : 'light'} // Force re-render when theme changes
           current={new Date().toISOString().split('T')[0]}
           markedDates={markedDates}
           markingType={'custom'}
           onDayPress={handleDayPress}
-          theme={{
-            todayTextColor: isDarkMode ? '#FFD700' : '#2A9D8F',
-            arrowColor: isDarkMode ? '#FFD700' : '#2A9D8F',
-            monthTextColor: isDarkMode ? '#FFD700' : '#264653',
-            textMonthFontWeight: 'bold',
-            textDayHeaderFontWeight: '600',
+          theme={calendarTheme}
+          style={{
             backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
-            calendarBackground: isDarkMode ? '#121212' : '#FFFFFF',
-            dayTextColor: isDarkMode ? '#E0E0E0' : '#000000',
-            textDisabledColor: isDarkMode ? '#5C5C5C' : '#D9E1E8',
           }}
         />
 
@@ -326,13 +337,6 @@ export default function CycleTrackingScreen({ navigation }: Props) {
             <Text style={styles.menuText}>Track Periods</Text>
             <Ionicons name="chevron-forward" size={20} color={isDarkMode ? "#FFD700" : "#264653"} />
           </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.toggleButton}
-          onPress={toggleTheme}
-        >
-          <Text style={styles.toggleButtonText}>{isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

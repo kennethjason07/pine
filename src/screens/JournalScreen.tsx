@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, isValid, parseISO } from 'date-fns';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTheme } from '../context/ThemeContext';
 
 type RootStackParamList = {
   Insights: undefined;
@@ -36,6 +37,8 @@ const STORAGE_KEY = '@journal_entries';
 const screenHeight = Dimensions.get('window').height;
 
 export default function JournalScreen({ navigation }: Props) {
+  const { isDarkMode } = useTheme();
+
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [showEditor, setShowEditor] = useState(false);
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
@@ -140,6 +143,109 @@ export default function JournalScreen({ navigation }: Props) {
     );
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDarkMode ? '#1E1E2E' : '#F8F9FA',
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: isDarkMode ? '#2A2A40' : '#FFFFFF',
+      borderBottomWidth: 1,
+      borderBottomColor: isDarkMode ? '#333333' : '#E9ECEF',
+    },
+    backButton: {
+      marginRight: 16,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: isDarkMode ? '#FFFFFF' : '#000000',
+    },
+    entriesContainer: {
+      flex: 1,
+      padding: 16,
+    },
+    entryCard: {
+      backgroundColor: isDarkMode ? '#2A2A40' : '#F8F9FA',
+      borderRadius: 12,
+      marginBottom: 16,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    },
+    cardContent: {
+      padding: 16,
+    },
+    entryDate: {
+      fontSize: 14,
+      color: isDarkMode ? '#AAAAAA' : '#666666',
+      marginBottom: 8,
+    },
+    entryPreview: {
+      fontSize: 16,
+      color: isDarkMode ? '#FFFFFF' : '#264653',
+      lineHeight: 24,
+    },
+    fab: {
+      position: 'absolute',
+      right: 16,
+      bottom: 16,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: isDarkMode ? '#2A9D8F' : '#2A9D8F',
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+    },
+    editorContainer: {
+      flex: 1,
+      backgroundColor: isDarkMode ? '#1E1E2E' : '#FFFFFF',
+    },
+    editorHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: isDarkMode ? '#333333' : '#E9ECEF',
+    },
+    editorTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: isDarkMode ? '#FFFFFF' : '#264653',
+    },
+    editorActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    editorButton: {
+      padding: 8,
+    },
+    deleteButton: {
+      marginRight: 8,
+    },
+    saveButton: {
+      marginLeft: 8,
+    },
+    editor: {
+      flex: 1,
+      padding: 16,
+      fontSize: 16,
+      lineHeight: 24,
+      color: isDarkMode ? '#FFFFFF' : '#264653',
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -147,7 +253,7 @@ export default function JournalScreen({ navigation }: Props) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#264653" />
+          <Ionicons name="arrow-back" size={24} color={isDarkMode ? '#FFFFFF' : '#264653'} />
         </TouchableOpacity>
         <Text style={styles.title}>Journal</Text>
       </View>
@@ -226,7 +332,7 @@ export default function JournalScreen({ navigation }: Props) {
                 }
               }}
             >
-              <Ionicons name="close" size={24} color="#264653" />
+              <Ionicons name="close" size={24} color={isDarkMode ? '#FFFFFF' : '#264653'} />
             </TouchableOpacity>
             <Text style={styles.editorTitle}>
               {isNewEntry ? 'New Entry' : formatDate(currentEntry?.date || new Date().toISOString())}
@@ -264,106 +370,3 @@ export default function JournalScreen({ navigation }: Props) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#264653',
-  },
-  entriesContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  entryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  cardContent: {
-    padding: 16,
-  },
-  entryDate: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-  },
-  entryPreview: {
-    fontSize: 16,
-    color: '#264653',
-    lineHeight: 24,
-  },
-  fab: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#2A9D8F',
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  editorContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  editorHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-  },
-  editorTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#264653',
-  },
-  editorActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  editorButton: {
-    padding: 8,
-  },
-  deleteButton: {
-    marginRight: 8,
-  },
-  saveButton: {
-    marginLeft: 8,
-  },
-  editor: {
-    flex: 1,
-    padding: 16,
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#264653',
-  },
-});

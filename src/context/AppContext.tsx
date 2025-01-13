@@ -162,14 +162,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           commonSymptoms: []
         });
 
-        console.log('Updated cycle data:', {
-          currentDay,
-          phase,
-          cycleLength,
-          daysUntilNextPeriod,
-          nextPeriodDate: format(nextPeriodDate, 'MMM d, yyyy')
-        });
-
         if (settings) {
           setCycleSettings({
             lastPeriodDate: settings.lastPeriodDate,

@@ -8,6 +8,7 @@ import HomeScreen from '../screens/HomeScreen';
 import CycleTrackingScreen from '../screens/CycleTrackingScreen';
 import MedicationTrackingScreen from '../screens/MedicationTrackingScreen';
 import MedicineAdherenceScreen from '../screens/MedicineAdherenceScreen';
+import FlowersScreen from '../screens/FlowersScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -34,6 +35,11 @@ const HomeStack = () => {
         name="MedicineAdherence" 
         component={MedicineAdherenceScreen}
         options={{ title: 'Medicine Adherence' }}
+      />
+      <Stack.Screen 
+        name="Flowers" 
+        component={FlowersScreen}
+        options={{ title: 'Flowers' }}
       />
     </Stack.Navigator>
   );

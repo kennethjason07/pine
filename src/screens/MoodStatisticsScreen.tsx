@@ -13,6 +13,7 @@ import { LineChart } from 'react-native-chart-kit';
 import { getAllDayDetails, DayData } from '../utils/storage';
 import { format, subDays, parseISO } from 'date-fns';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTheme } from '../context/ThemeContext';
 
 type RootStackParamList = {
   MoodStatistics: undefined;
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export default function MoodStatisticsScreen({ navigation }: Props) {
+  const { isDarkMode } = useTheme();
   const [moodData, setMoodData] = useState<{[key: string]: number}>({
     happy: 0,
     neutral: 0,
@@ -110,6 +112,124 @@ export default function MoodStatisticsScreen({ navigation }: Props) {
     };
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDarkMode ? '#1E1E2E' : '#FFFFFF',
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 25,
+      borderBottomWidth: 1,
+      borderBottomColor: isDarkMode ? '#333333' : '#E9ECEF',
+    },
+    backButton: {
+      marginTop: 15,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: isDarkMode ? '#FFFFFF' : '#264653',
+      marginTop: 15,
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    content: {
+      flex: 1,
+      padding: 16,
+    },
+    section: {
+      marginBottom: 24,
+      backgroundColor: isDarkMode ? '#2A2A40' : '#FFFFFF',
+      borderRadius: 12,
+      padding: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: isDarkMode ? '#FFD700' : '#264653',
+      marginBottom: 16,
+    },
+    moodStats: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginTop: 8,
+    },
+    moodStat: {
+      alignItems: 'center',
+    },
+    moodEmoji: {
+      fontSize: 32,
+      marginBottom: 8,
+    },
+    moodCount: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: isDarkMode ? '#FFFFFF' : '#264653',
+    },
+    moodPercentage: {
+      fontSize: 16,
+      color: isDarkMode ? '#AAAAAA' : '#2A9D8F',
+      marginTop: 4,
+    },
+    moodLabel: {
+      fontSize: 14,
+      color: isDarkMode ? '#AAAAAA' : '#666',
+      marginTop: 4,
+      textTransform: 'capitalize',
+    },
+    recentMoodItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: isDarkMode ? '#333333' : '#E9ECEF',
+    },
+    dateContainer: {
+      flex: 1,
+    },
+    dateText: {
+      fontSize: 16,
+      color: isDarkMode ? '#FFFFFF' : '#264653',
+    },
+    moodContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    moodText: {
+      fontSize: 16,
+      color: isDarkMode ? '#AAAAAA' : '#666',
+      marginLeft: 8,
+      textTransform: 'capitalize',
+    },
+    chartContainer: {
+      alignItems: 'center',
+      marginVertical: 10,
+      backgroundColor: isDarkMode ? '#2A2A40' : '#FFFFFF',
+      borderRadius: 16,
+      padding: 8,
+    },
+    legendContainer: {
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    legendText: {
+      fontSize: 14,
+      color: isDarkMode ? '#AAAAAA' : '#666',
+      textAlign: 'center',
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -117,7 +237,7 @@ export default function MoodStatisticsScreen({ navigation }: Props) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#264653" />
+          <Ionicons name="arrow-back" size={24} color={isDarkMode ? '#FFFFFF' : '#264653'} />
         </TouchableOpacity>
         <Text style={styles.title}>Mood Statistics</Text>
         <View style={styles.headerSpacer} />
@@ -137,9 +257,9 @@ export default function MoodStatisticsScreen({ navigation }: Props) {
                 yAxisSuffix=""
                 yAxisInterval={1}
                 chartConfig={{
-                  backgroundColor: '#FFFFFF',
-                  backgroundGradientFrom: '#FFFFFF',
-                  backgroundGradientTo: '#FFFFFF',
+                  backgroundColor: isDarkMode ? '#2A2A40' : '#FFFFFF',
+                  backgroundGradientFrom: isDarkMode ? '#2A2A40' : '#FFFFFF',
+                  backgroundGradientTo: isDarkMode ? '#2A2A40' : '#FFFFFF',
                   decimalPlaces: 0,
                   color: (opacity = 1) => `rgba(42, 157, 143, ${opacity})`,
                   labelColor: (opacity = 1) => `rgba(38, 70, 83, ${opacity})`,
@@ -211,131 +331,3 @@ export default function MoodStatisticsScreen({ navigation }: Props) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 25,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-  },
-  backButton: {
-    marginTop: 15,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#264653',
-    marginTop: 15,
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  section: {
-    marginBottom: 24,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#264653',
-    marginBottom: 16,
-  },
-  moodStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 8,
-  },
-  moodStat: {
-    alignItems: 'center',
-  },
-  moodEmoji: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  moodCount: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#264653',
-  },
-  moodPercentage: {
-    fontSize: 16,
-    color: '#2A9D8F',
-    marginTop: 4,
-  },
-  moodLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-    textTransform: 'capitalize',
-  },
-  recentMoodItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-  },
-  dateContainer: {
-    flex: 1,
-  },
-  dateText: {
-    fontSize: 16,
-    color: '#264653',
-  },
-  moodContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  moodText: {
-    fontSize: 16,
-    color: '#666',
-    marginLeft: 8,
-    textTransform: 'capitalize',
-  },
-  chartContainer: {
-    alignItems: 'center',
-    marginVertical: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 8,
-  },
-  legendContainer: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  legendText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  dataPoint: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#2A9D8F',
-  },
-  chart: {
-    height: 220,
-    width: Dimensions.get('window').width - 64,
-  },
-}); 

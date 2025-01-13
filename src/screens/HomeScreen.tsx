@@ -9,7 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { format } from 'date-fns';
-import { lightTheme, darkTheme } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 interface Medication {
   id: string;
@@ -45,11 +45,7 @@ export default function HomeScreen({ navigation }: Props) {
     cycleSettings
   } = useApp();
 
-  const [isDarkMode, setIsDarkMode] = useState(false); // State for dark mode
-
-  const toggleTheme = () => {
-    setIsDarkMode(prevMode => !prevMode);
-  };
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const [medications, setMedications] = useState<Medication[]>([]);
   const [nextMedication, setNextMedication] = useState<Medication | null>(null);
@@ -153,7 +149,7 @@ export default function HomeScreen({ navigation }: Props) {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDarkMode ? darkTheme.background : lightTheme.background,
+      backgroundColor: isDarkMode ? '#1E1E2E' : '#FFFFFF',  // Main Background
     },
     header: {
       flexDirection: 'row',
@@ -165,7 +161,7 @@ export default function HomeScreen({ navigation }: Props) {
     headerText: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      color: isDarkMode ? '#FFFFFF' : '#000000',  // Title Text
     },
     themeToggle: {
       padding: 8,
@@ -184,14 +180,14 @@ export default function HomeScreen({ navigation }: Props) {
       shadowOpacity: 0.1,
       shadowRadius: 3,
       elevation: 3,
-      backgroundColor: isDarkMode ? darkTheme.card : lightTheme.card,
-      borderColor: isDarkMode ? darkTheme.border : lightTheme.border,
+      backgroundColor: isDarkMode ? '#2F2F3F' : '#FFFFFF',
+      borderColor: isDarkMode ? '#4F4F5F' : '#DADADA',
     },
     cardTitle: {
       fontSize: 18,
       fontWeight: 'bold',
       marginBottom: 12,
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      color: isDarkMode ? '#FFFFFF' : '#000000',  // Title Text
     },
     statsContainer: {
       gap: 16,
@@ -201,21 +197,21 @@ export default function HomeScreen({ navigation }: Props) {
     },
     statLabel: {
       fontSize: 14,
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      color: isDarkMode ? '#FFFFFF' : '#000000',  // Title Text
     },
     statValue: {
       fontSize: 16,
       fontWeight: '500',
-      color: isDarkMode ? darkTheme.primary : lightTheme.primary,
+      color: isDarkMode ? '#4CAF50' : '#007BFF',  // Button background
     },
     emptyText: {
       fontStyle: 'italic',
       textAlign: 'center',
       padding: 16,
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      color: isDarkMode ? '#FFFFFF' : '#000000',  // Title Text
     },
     toggleButton: {
-      backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',
+      backgroundColor: isDarkMode ? '#4CAF50' : '#007BFF',  // Button background
       padding: 10,
       borderRadius: 5,
       alignItems: 'center',
@@ -233,9 +229,9 @@ export default function HomeScreen({ navigation }: Props) {
         <Text style={styles.headerText}>HarmoniCare</Text>
         <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
           <Ionicons 
-            name={isDarkMode ? "moon" : "moon-outline"} 
+            name={isDarkMode ? "sunny-outline" : "moon-outline"} 
             size={24} 
-            color={isDarkMode ? darkTheme.text : lightTheme.text} 
+            color={isDarkMode ? "#FFD700" : "#264653"} 
           />
         </TouchableOpacity>
       </View>
@@ -277,10 +273,6 @@ export default function HomeScreen({ navigation }: Props) {
             </View>
           </View>
         </View>
-
-        <TouchableOpacity onPress={toggleTheme} style={styles.toggleButton}>
-          <Text style={styles.toggleButtonText}>{isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

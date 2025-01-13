@@ -19,6 +19,7 @@ import MoodStatisticsScreen from './src/screens/MoodStatisticsScreen';
 import MedicineAdherenceScreen from './src/screens/MedicineAdherenceScreen';
 import JournalScreen from './src/screens/JournalScreen';
 import PredictPeriodsScreen from './src/screens/PredictPeriodsScreen';
+import Flowers from './src/screens/Flowers';
 
 // Define your navigation types
 type RootStackParamList = {
@@ -134,6 +135,14 @@ export default function App() {
               <Stack.Screen 
                 name="Journal" 
                 component={JournalScreen}
+                options={{
+                  animation: 'slide_from_right',
+                  presentation: 'card',
+                }}
+              />
+               <Stack.Screen 
+                name="Flowers" 
+                component={Flowers}
                 options={{
                   animation: 'slide_from_right',
                   presentation: 'card',
