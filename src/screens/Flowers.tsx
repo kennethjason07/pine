@@ -1,43 +1,56 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
-import Video from 'react-native-video';
+import { View, StyleSheet, ActivityIndicator, Dimensions, Text } from 'react-native';
+import { Video } from 'expo-av';
 
 const Flowers: React.FC = () => {
   const [loading, setLoading] = useState(true); // State to track loading status
+  const videoRef = React.useRef<Video>(null); // Reference for the video player
 
   return (
     <View style={styles.container}>
       <Video
-        source={require('../assets/flowers.mp4')} // Path to the video file
+        ref={videoRef}
+        source={require('../called/flowers.mp4')} // Correct relative path to your local video file
         style={styles.video}
         resizeMode="cover"
-        repeat
-        muted
-        onError={(error) => console.error('Video Error:', error)} // Log any errors
-        onLoadStart={() => setLoading(true)} // Show loading indicator
-        onLoad={() => setLoading(false)} // Hide loading indicator
+        shouldPlay // Automatically start the video
+        isLooping // Loop the video
+        // isMuted // Mute the video
+        onLoadStart={() => setLoading(true)} // Show loading indicator while loading
+        onReadyForDisplay={() => setLoading(false)} // Hide loading indicator once loaded
+        onError={(error) => console.error('Video error:', error)} // Log errors
       />
       {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#00ff00" />
         </View>
       )}
+      {!loading && (
+        <View style={styles.textContainer}>
+          <Text style={styles.text}>
+            Flowers for <Text style={styles.highlight}>you Pineapple</Text>
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
 
-const { width, height } = Dimensions.get('window'); // Get device dimensions
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width,
+    height,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000', // Optional: Set background color for better contrast
+    backgroundColor: 'white', // Optional: White background for better contrast
   },
   video: {
-    width: width, // Dynamic width
-    height: height, // Dynamic height
+    width: width / 2 + 600, // Adjusted width
+    height: height / 2+80, // Adjusted height
+    marginRight: 80,
   },
   loadingContainer: {
     position: 'absolute',
@@ -45,7 +58,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Optional: Add transparency while loading
+    backgroundColor: 'white',
+  },
+  textContainer: {
+    position: 'absolute',
+    bottom: 50, // Position the text slightly above the bottom
+    width: '100%',
+    alignItems: 'center',
+  },
+  text: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'red',
+    textAlign: 'center',
+  },
+  highlight: {
+    color: 'green', // Highlight part of the text
   },
 });
 
